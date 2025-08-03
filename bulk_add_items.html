@@ -1,0 +1,463 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Add Items - Business Manager{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-table me-2 text-primary"></i>Bulk Add Items
+                    </h1>
+                    <p class="text-muted mb-0">Add multiple items quickly using the spreadsheet-like interface</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('catalog') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Catalog
+                    </a>
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'info-circle' }} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Instructions -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle text-info me-2"></i>How to Use
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="mb-0">
+                                <li>Fill in the table rows with your item details</li>
+                                <li>Click "Add Row" to add more items</li>
+                                <li>Use Tab to move between cells quickly</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="mb-0">
+                                <li>All fields are required except initial stock</li>
+                                <li>Cost price should be less than selling price</li>
+                                <li>Click "Save All Items" when finished</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Add Form -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-spreadsheet-alt me-2"></i>Items Spreadsheet
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <form method="POST" id="bulkItemsForm">
+                        <!-- Controls -->
+                        <div class="p-3 bg-light border-bottom">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <button type="button" class="btn btn-success me-2" onclick="addRow()">
+                                        <i class="fas fa-plus me-2"></i>Add Row
+                                    </button>
+                                    <button type="button" class="btn btn-warning me-2" onclick="clearAll()">
+                                        <i class="fas fa-trash me-2"></i>Clear All
+                                    </button>
+                                    <span class="text-muted">Rows: <span id="rowCount">3</span></span>
+                                </div>
+                                <div class="col-md-6 text-md-end">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-save me-2"></i>Save All Items
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Spreadsheet Table -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered mb-0" id="itemsTable">
+                                <thead class="table-dark sticky-top">
+                                    <tr>
+                                        <th style="width: 5%">#</th>
+                                        <th style="width: 25%">Item Name *</th>
+                                        <th style="width: 20%">Category *</th>
+                                        <th style="width: 15%">Cost Price *</th>
+                                        <th style="width: 15%">Selling Price *</th>
+                                        <th style="width: 15%">Initial Stock</th>
+                                        <th style="width: 5%">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="itemsTableBody">
+                                    <!-- Initial 3 rows -->
+                                    <tr class="item-row">
+                                        <td class="row-number text-center">1</td>
+                                        <td>
+                                            <input type="text" 
+                                                   class="form-control form-control-sm border-0" 
+                                                   name="items[0][name]" 
+                                                   placeholder="Enter item name"
+                                                   required>
+                                        </td>
+                                        <td>
+                                            <select class="form-select form-select-sm border-0" name="items[0][category]" required>
+                                                <option value="">Select category</option>
+                                                {% for category in categories %}
+                                                    <option value="{{ category }}">{{ category }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control form-control-sm border-0" 
+                                                   name="items[0][cost_price]" 
+                                                   step="0.01" 
+                                                   min="0"
+                                                   placeholder="0.00"
+                                                   required>
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control form-control-sm border-0" 
+                                                   name="items[0][selling_price]" 
+                                                   step="0.01" 
+                                                   min="0"
+                                                   placeholder="0.00"
+                                                   required>
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control form-control-sm border-0" 
+                                                   name="items[0][initial_stock]" 
+                                                   min="0"
+                                                   placeholder="0"
+                                                   value="0">
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRow(this)">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="item-row">
+                                        <td class="row-number text-center">2</td>
+                                        <td>
+                                            <input type="text" 
+                                                   class="form-control form-control-sm border-0" 
+                                                   name="items[1][name]" 
+                                                   placeholder="Enter item name">
+                                        </td>
+                                        <td>
+                                            <select class="form-select form-select-sm border-0" name="items[1][category]">
+                                                <option value="">Select category</option>
+                                                {% for category in categories %}
+                                                    <option value="{{ category }}">{{ category }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control form-control-sm border-0" 
+                                                   name="items[1][cost_price]" 
+                                                   step="0.01" 
+                                                   min="0"
+                                                   placeholder="0.00">
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control form-control-sm border-0" 
+                                                   name="items[1][selling_price]" 
+                                                   step="0.01" 
+                                                   min="0"
+                                                   placeholder="0.00">
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control form-control-sm border-0" 
+                                                   name="items[1][initial_stock]" 
+                                                   min="0"
+                                                   placeholder="0"
+                                                   value="0">
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRow(this)">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="item-row">
+                                        <td class="row-number text-center">3</td>
+                                        <td>
+                                            <input type="text" 
+                                                   class="form-control form-control-sm border-0" 
+                                                   name="items[2][name]" 
+                                                   placeholder="Enter item name">
+                                        </td>
+                                        <td>
+                                            <select class="form-select form-select-sm border-0" name="items[2][category]">
+                                                <option value="">Select category</option>
+                                                {% for category in categories %}
+                                                    <option value="{{ category }}">{{ category }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control form-control-sm border-0" 
+                                                   name="items[2][cost_price]" 
+                                                   step="0.01" 
+                                                   min="0"
+                                                   placeholder="0.00">
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control form-control-sm border-0" 
+                                                   name="items[2][selling_price]" 
+                                                   step="0.01" 
+                                                   min="0"
+                                                   placeholder="0.00">
+                                        </td>
+                                        <td>
+                                            <input type="number" 
+                                                   class="form-control form-control-sm border-0" 
+                                                   name="items[2][initial_stock]" 
+                                                   min="0"
+                                                   placeholder="0"
+                                                   value="0">
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRow(this)">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let rowIndex = 3;
+
+function addRow() {
+    const tableBody = document.getElementById('itemsTableBody');
+    const newRow = document.createElement('tr');
+    newRow.className = 'item-row';
+    
+    newRow.innerHTML = `
+        <td class="row-number text-center">${rowIndex + 1}</td>
+        <td>
+            <input type="text" 
+                   class="form-control form-control-sm border-0" 
+                   name="items[${rowIndex}][name]" 
+                   placeholder="Enter item name">
+        </td>
+        <td>
+            <select class="form-select form-select-sm border-0" name="items[${rowIndex}][category]">
+                <option value="">Select category</option>
+                {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td>
+            <input type="number" 
+                   class="form-control form-control-sm border-0" 
+                   name="items[${rowIndex}][cost_price]" 
+                   step="0.01" 
+                   min="0"
+                   placeholder="0.00">
+        </td>
+        <td>
+            <input type="number" 
+                   class="form-control form-control-sm border-0" 
+                   name="items[${rowIndex}][selling_price]" 
+                   step="0.01" 
+                   min="0"
+                   placeholder="0.00">
+        </td>
+        <td>
+            <input type="number" 
+                   class="form-control form-control-sm border-0" 
+                   name="items[${rowIndex}][initial_stock]" 
+                   min="0"
+                   placeholder="0"
+                   value="0">
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRow(this)">
+                <i class="fas fa-times"></i>
+            </button>
+        </td>
+    `;
+    
+    tableBody.appendChild(newRow);
+    rowIndex++;
+    updateRowNumbers();
+    
+    // Focus on the name input of the new row
+    const nameInput = newRow.querySelector('input[type="text"]');
+    nameInput.focus();
+}
+
+function removeRow(button) {
+    const row = button.closest('tr');
+    const tableBody = document.getElementById('itemsTableBody');
+    
+    // Don't remove if it's the last row
+    if (tableBody.children.length <= 1) {
+        alert('You must have at least one row');
+        return;
+    }
+    
+    row.remove();
+    updateRowNumbers();
+}
+
+function updateRowNumbers() {
+    const rows = document.querySelectorAll('.item-row');
+    const rowCount = document.getElementById('rowCount');
+    
+    rows.forEach((row, index) => {
+        const rowNumber = row.querySelector('.row-number');
+        rowNumber.textContent = index + 1;
+        
+        // Update the name attributes
+        const inputs = row.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            const name = input.getAttribute('name');
+            if (name) {
+                const newName = name.replace(/\[\d+\]/, `[${index}]`);
+                input.setAttribute('name', newName);
+            }
+        });
+    });
+    
+    rowCount.textContent = rows.length;
+}
+
+function clearAll() {
+    if (confirm('Are you sure you want to clear all data?')) {
+        const inputs = document.querySelectorAll('#itemsTable input');
+        const selects = document.querySelectorAll('#itemsTable select');
+        
+        inputs.forEach(input => {
+            if (input.type === 'number' && input.name.includes('initial_stock')) {
+                input.value = '0';
+            } else {
+                input.value = '';
+            }
+        });
+        
+        selects.forEach(select => {
+            select.selectedIndex = 0;
+        });
+        
+        // Focus on first input
+        const firstInput = document.querySelector('#itemsTable input[type="text"]');
+        if (firstInput) {
+            firstInput.focus();
+        }
+    }
+}
+
+// Form submission handling
+document.getElementById('bulkItemsForm').addEventListener('submit', function(e) {
+    const submitBtn = this.querySelector('button[type="submit"]');
+    
+    // Show loading state
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving Items...';
+    submitBtn.disabled = true;
+    
+    // Count filled rows
+    const filledRows = Array.from(document.querySelectorAll('.item-row')).filter(row => {
+        const nameInput = row.querySelector('input[type="text"]');
+        return nameInput && nameInput.value.trim() !== '';
+    });
+    
+    if (filledRows.length === 0) {
+        e.preventDefault();
+        alert('Please fill in at least one item');
+        submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save All Items';
+        submitBtn.disabled = false;
+        return;
+    }
+});
+
+// Enhanced keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.target.matches('#itemsTable input, #itemsTable select')) {
+        if (e.key === 'Tab') {
+            // Tab navigation is handled by browser
+            return;
+        }
+        
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const currentCell = e.target.closest('td');
+            const currentRow = currentCell.closest('tr');
+            const nextRow = currentRow.nextElementSibling;
+            
+            if (nextRow) {
+                // Move to same column in next row
+                const cellIndex = Array.from(currentRow.children).indexOf(currentCell);
+                const nextCell = nextRow.children[cellIndex];
+                const nextInput = nextCell.querySelector('input, select');
+                if (nextInput) {
+                    nextInput.focus();
+                }
+            } else {
+                // Add new row and focus on it
+                addRow();
+            }
+        }
+    }
+});
+
+// Auto-calculate profit margin indicator
+document.addEventListener('input', function(e) {
+    if (e.target.name && (e.target.name.includes('cost_price') || e.target.name.includes('selling_price'))) {
+        const row = e.target.closest('tr');
+        const costInput = row.querySelector('input[name*="cost_price"]');
+        const sellingInput = row.querySelector('input[name*="selling_price"]');
+        
+        const cost = parseFloat(costInput.value) || 0;
+        const selling = parseFloat(sellingInput.value) || 0;
+        
+        // Add visual feedback for profit margin
+        if (cost > 0 && selling > 0) {
+            if (selling <= cost) {
+                sellingInput.classList.add('is-invalid');
+                sellingInput.classList.remove('is-valid');
+            } else {
+                sellingInput.classList.remove('is-invalid');
+                sellingInput.classList.add('is-valid');
+            }
+        } else {
+            sellingInput.classList.remove('is-invalid', 'is-valid');
+        }
+    }
+});
+</script>
+{% endblock %}
