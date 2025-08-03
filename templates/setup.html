@@ -38,7 +38,8 @@
                     <!-- Setup Form -->
                     <div class="card border-0 shadow-lg">
                         <div class="card-body p-5">
-                            <form method="POST" id="businessSetupForm">
+                            <form method="POST" id="businessSetupForm"
+                                action="{{ url_for('setup_business') }}">
                                 <!-- Business Name -->
                                 <div class="mb-4">
                                     <label for="business_name" class="form-label h5">
