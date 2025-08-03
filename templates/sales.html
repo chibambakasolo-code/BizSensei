@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}Sales - Business Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4">
+                <i class="fas fa-shopping-cart me-3"></i>Sales Management
+            </h1>
+            <p class="lead">Record and track your sales</p>
+        </div>
+    </div>
+
+    <!-- Sales Entry Forms -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-magic me-2"></i>Smart Sale Entry
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('add_sale') }}">
+                        <div class="mb-3">
+                            <label for="smart_input" class="form-label">
+                                Describe your sale
+                                <i class="fas fa-info-circle text-muted" 
+                                   data-bs-toggle="tooltip" 
+                                   title="Examples: 'sold milk for K15', 'bread 2 K10', 'biscuits K5'">
+                                </i>
+                            </label>
+                            <input type="text" 
+                                   class="form-control form-control-lg" 
+                                   id="smart_input" 
+                                   name="smart_input"
+                                   placeholder="e.g., sold milk for K15"
+                                   required>
+                            <div class="form-text">
+                                Use natural language like "sold milk for K15" or "bread 2 K10"
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-magic me-2"></i>Record Sale
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-alt me-2"></i>Manual Sale Entry
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('add_sale') }}">
+                        <div class="mb-3">
+                            <label for="item_id" class="form-label">Item *</label>
+                            <select class="form-select" id="item_id" name="item_id" required>
+                                <option value="">Select an item</option>
+                                {% for item in items %}
+                                    <option value="{{ item.id }}" data-price="{{ item.selling_price }}">
+                                        {{ item.name }} - K{{ "%.2f"|format(item.selling_price) }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="quantity" class="form-label">Quantity *</label>
+                                <input type="number" class="form-control" id="quantity" name="quantity" 
+                                       min="1" value="1" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="sale_price" class="form-label">Sale Price (K) *</label>
+                                <input type="number" class="form-control" id="sale_price" name="sale_price" 
+                                       step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            <input type="text" class="form-control" id="notes" name="notes" 
+                                   placeholder="Optional notes">
+                        </div>
+                        
+                        <div id="manualSaleTotal" class="alert alert-info" style="display: none;">
+                            <strong>Total:</strong> K<span id="manualTotalAmount">0.00</span>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-save me-2"></i>Record Sale
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Sales -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Recent Sales
+                    </h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary" onclick="exportSales()">
+                            <i class="fas fa-download me-1"></i>Export CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if recent_sales %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Item</th>
+                                        <th>Qty</th>
+                                        <th>Unit Price</th>
+                                        <th>Total</th>
+                                        <th>Profit</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for sale in recent_sales %}
+                                    <tr>
+                                        <td>
+                                            <small>{{ sale.sale_date[:16] }}</small>
+                                        </td>
+                                        <td>
+                                            <strong>{{ sale.item_name }}</strong>
+                                        </td>
+                                        <td>{{ sale.quantity }}</td>
+                                        <td>K{{ "%.2f"|format(sale.unit_price) }}</td>
+                                        <td>
+                                            <strong class="text-success">
+                                                K{{ "%.2f"|format(sale.total_amount) }}
+                                            </strong>
+                                        </td>
+                                        <td>
+                                            <span class="text-{{ 'success' if sale.profit > 0 else 'warning' if sale.profit == 0 else 'danger' }}">
+                                                K{{ "%.2f"|format(sale.profit) }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ sale.notes[:30] }}{% if sale.notes|length > 30 %}...{% endif %}</small>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Sales Summary -->
+                        <div class="row mt-4">
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="text-primary">Total Sales</h5>
+                                        <h3>{{ recent_sales|length }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="text-success">Total Revenue</h5>
+                                        <h3>K{{ "%.2f"|format(recent_sales|sum(attribute='total_amount')) }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h5 class="text-info">Total Profit</h5>
+                                        <h3>K{{ "%.2f"|format(recent_sales|sum(attribute='profit')) }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-cash-register fa-4x mb-4 text-muted"></i>
+                            <h3>No sales recorded yet</h3>
+                            <p class="text-muted">Record your first sale using the forms above</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initialize tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+});
+
+// Manual sale form handling
+const itemSelect = document.getElementById('item_id');
+const salePriceInput = document.getElementById('sale_price');
+const quantityInput = document.getElementById('quantity');
+const manualSaleTotal = document.getElementById('manualSaleTotal');
+const manualTotalAmount = document.getElementById('manualTotalAmount');
+
+// Auto-fill price when item is selected
+itemSelect.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    if (selectedOption.dataset.price) {
+        salePriceInput.value = selectedOption.dataset.price;
+        updateManualTotal();
+    }
+});
+
+function updateManualTotal() {
+    const quantity = parseFloat(quantityInput.value) || 0;
+    const price = parseFloat(salePriceInput.value) || 0;
+    const total = quantity * price;
+    
+    if (total > 0) {
+        manualTotalAmount.textContent = total.toFixed(2);
+        manualSaleTotal.style.display = 'block';
+    } else {
+        manualSaleTotal.style.display = 'none';
+    }
+}
+
+quantityInput.addEventListener('input', updateManualTotal);
+salePriceInput.addEventListener('input', updateManualTotal);
+
+// Quick sale function for compatibility
+function quickSale() {
+    // Focus on the smart sale input
+    const smartSaleInput = document.getElementById('sale_input');
+    if (smartSaleInput) {
+        smartSaleInput.focus();
+        smartSaleInput.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// Export functionality
+function exportSales() {
+    window.location.href = '/export/sales-csv';
+}
+
+// Smart input examples cycling
+const smartInput = document.getElementById('smart_input');
+const examples = [
+    'sold milk for K15',
+    'bread 2 K10',
+    'biscuits K5',
+    'sold rice 5kg K25',
+    'soap K8'
+];
+
+let exampleIndex = 0;
+function cycleExamples() {
+    if (smartInput === document.activeElement) return; // Don't change if user is typing
+    
+    smartInput.placeholder = `e.g., ${examples[exampleIndex]}`;
+    exampleIndex = (exampleIndex + 1) % examples.length;
+}
+
+// Cycle examples every 3 seconds
+setInterval(cycleExamples, 3000);
+</script>
+{% endblock %}
+                              
