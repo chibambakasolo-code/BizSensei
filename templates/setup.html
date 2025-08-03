@@ -36,29 +36,43 @@
                     {% endwith %}
 
                     <!-- Setup Form -->
-                    <div class="card border-0 shadow-lg">
-                        <div class="card-body p-5">
-                            <form method="POST" id="businessSetupForm"
-                                action="{{ url_for('setup_business') }}">
-                                <!-- Business Name -->
-                                <div class="mb-4">
-                                    <label for="business_name" class="form-label h5">
-                                        <i class="fas fa-building me-2 text-primary"></i>Business Name
-                                    </label>
-                                    <input type="text" 
-                                           class="form-control form-control-lg" 
-                                           id="business_name" 
-                                           name="business_name" 
-                                           placeholder="Enter your business name"
-                                           required>
-                                    <div class="form-text">This will appear on your reports and throughout the system</div>
-                                </div>
+                    <form method="POST" action="{{ url_for('setup_business') }}" id="businessSetupForm">
+    <!-- Business Name -->
+    <div class="mb-4">
+        <label for="business_name" class="form-label h5">
+            <i class="fas fa-building me-2 text-primary"></i>Business Name
+        </label>
+        <input type="text" 
+               class="form-control form-control-lg" 
+               id="business_name" 
+               name="business_name" 
+               placeholder="Enter your business name"
+               required>
+        <div class="form-text">This will appear on your reports and throughout the system</div>
+    </div>
 
-                                <!-- Business Type -->
-                                <div class="mb-5">
-                                    <label class="form-label h5 mb-3">
-                                        <i class="fas fa-tags me-2 text-primary"></i>Business Type
-                                    </label>
+    <!-- Business Type -->
+    <div class="mb-4">
+        <label for="business_type" class="form-label h5">
+            <i class="fas fa-tags me-2 text-primary"></i>Business Type
+        </label>
+        <input type="text" 
+               class="form-control form-control-lg" 
+               id="business_type" 
+               name="business_type" 
+               placeholder="e.g. Retail, Services"
+               required>
+        <div class="form-text">Specify the nature of your business.</div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="d-grid">
+        <button type="submit" class="btn btn-primary btn-lg">
+            <i class="fas fa-check-circle me-2"></i>Set Up Business
+        </button>
+    </div>
+                    </form>
+                                
                                     
                                     <!-- Search Box -->
                                     <div class="mb-3">
