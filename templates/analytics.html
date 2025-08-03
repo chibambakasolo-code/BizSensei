@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Business Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4">
+                <i class="fas fa-chart-line me-3"></i>Analytics Dashboard
+            </h1>
+            <p class="lead">Visual insights into your business performance</p>
+        </div>
+    </div>
+
+    <!-- Period Selector -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-calendar-alt me-2"></i>Analysis Period
+                    </h6>
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="period" id="period7" value="7" {% if period == 7 %}checked{% endif %}>
+                        <label class="btn btn-outline-primary" for="period7">7 Days</label>
+                        
+                        <input type="radio" class="btn-check" name="period" id="period30" value="30" {% if period == 30 %}checked{% endif %}>
+                        <label class="btn btn-outline-primary" for="period30">30 Days</label>
+                        
+                        <input type="radio" class="btn-check" name="period" id="period90" value="90" {% if period == 90 %}checked{% endif %}>
+                        <label class="btn btn-outline-primary" for="period90">90 Days</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-magic me-2"></i>Quick Actions
+                    </h6>
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button class="btn btn-success" onclick="generateCharts()">
+                            <i class="fas fa-chart-bar me-2"></i>View Graphs
+                        </button>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-download me-2"></i>Export
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/export/report-pdf?period={{ period }}">
+                                    <i class="fas fa-file-pdf me-2"></i>PDF Report
+                                </a></li>
+                                <li><a class="dropdown-item" href="/export/sales-csv">
+                                    <i class="fas fa-file-csv me-2"></i>Sales CSV
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Total Revenue</h6>
+                            <h3 class="mb-0">K{{ "%.2f"|format(analytics.total_revenue) }}</h3>
+                            <small class="opacity-75">Last {{ period }} days</small>
+                        </div>
+                        <i class="fas fa-money-bill-wave fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Total Profit</h6>
+                            <h3 class="mb-0">K{{ "%.2f"|format(analytics.total_profit) }}</h3>
+                            <small class="opacity-75">
+                                {{ "%.1f"|format((analytics.total_profit / analytics.total_revenue * 100) if analytics.total_revenue > 0 else 0) }}% margin
+                            </small>
+                        </div>
+                        <i class="fas fa-chart-line fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Total Sales</h6>
+                            <h3 class="mb-0">{{ analytics.total_sales }}</h3>
+                            <small class="opacity-75">{{ analytics.total_quantity }} items sold</small>
+                        </div>
+                        <i class="fas fa-shopping-cart fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Average Sale</h6>
+                            <h3 class="mb-0">K{{ "%.2f"|format(analytics.average_sale) }}</h3>
+                            <small class="opacity-75">Per transaction</small>
+                        </div>
+                        <i class="fas fa-calculator fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if analytics.total_sales > 0 %}
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <!-- Sales Trend Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-area me-2"></i>Sales Trend
+                    </h5>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary active" onclick="updateSalesChart('revenue')">Revenue</button>
+                        <button class="btn btn-outline-primary" onclick="updateSalesChart('quantity')">Quantity</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="salesTrendChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Items Chart -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trophy me-2"></i>Top Products
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="topItemsChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Analysis -->
+    <div class="row mb-4">
+        <!-- Daily Performance -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Daily Performance
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="dailyPerformanceChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profit Analysis -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-percentage me-2"></i>Profit Analysis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="profitAnalysisChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Analysis -->
+    <div class="row mb-4">
+        <!-- Best & Worst Performers -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-award me-2"></i>Performance Winners & Losers
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if analytics.top_items %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-success">
+                                <i class="fas fa-thumbs-up me-1"></i>Top Performers
+                            </h6>
+                            {% for item in analytics.top_items[:3] %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <strong>{{ item.item_name }}</strong>
+                                    <small class="text-muted d-block">{{ item.quantity }} sold</small>
+                                </div>
+                                <span class="badge bg-success">K{{ "%.2f"|format(item.revenue) }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-warning">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Needs Attention
+                            </h6>
+                            {% set low_performers = analytics.top_items[-3:] %}
+                            {% for item in low_performers %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <strong>{{ item.item_name }}</strong>
+                                    <small class="text-muted d-block">{{ item.quantity }} sold</small>
+                                </div>
+                                <span class="badge bg-warning">K{{ "%.2f"|format(item.revenue) }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Business Insights -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Business Insights
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% set profit_margin = (analytics.total_profit / analytics.total_revenue * 100) if analytics.total_revenue > 0 else 0 %}
+                    {% set daily_avg = analytics.total_revenue / period %}
+                    
+                    <div class="mb-3">
+                        <h6 class="text-info">
+                            <i class="fas fa-chart-pie me-1"></i>Profitability Analysis
+                        </h6>
+                        <p class="small">
+                            Your profit margin is <strong>{{ "%.1f"|format(profit_margin) }}%</strong>.
+                            {% if profit_margin < 15 %}
+                                <span class="text-danger">Consider reviewing your pricing strategy to improve margins.</span>
+                            {% elif profit_margin > 40 %}
+                                <span class="text-success">Excellent margins! Your pricing strategy is working well.</span>
+                            {% else %}
+                                <span class="text-success">Good profit margins. Keep up the good work!</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-primary">
+                            <i class="fas fa-trending-up me-1"></i>Sales Velocity
+                        </h6>
+                        <p class="small">
+                            You're averaging <strong>K{{ "%.2f"|format(daily_avg) }}</strong> per day.
+                            {% if analytics.total_sales < 5 %}
+                                Focus on increasing transaction volume.
+                            {% elif analytics.total_sales > 20 %}
+                                Great sales activity! Consider expanding your offerings.
+                            {% else %}
+                                Steady sales performance.
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    {% if analytics.top_items %}
+                    <div class="mb-3">
+                        <h6 class="text-success">
+                            <i class="fas fa-star me-1"></i>Recommendations
+                        </h6>
+                        <p class="small">
+                            Focus on restocking <strong>{{ analytics.top_items[0].item_name }}</strong> - 
+                            it's generating {{ "%.1f"|format((analytics.top_items[0].revenue / analytics.total_revenue * 100)) }}% 
+                            of your revenue.
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Insights -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-boxes me-2"></i>Inventory Health
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% set low_stock_count = inventory_status|selectattr('is_low_stock')|list|length %}
+                        {% set total_value = inventory_status|sum(attribute='total_value') %}
+                        
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-primary">{{ inventory_status|length }}</h4>
+                            <small class="text-muted">Total Items</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-{{ 'danger' if low_stock_count > 5 else 'warning' if low_stock_count > 0 else 'success' }}">{{ low_stock_count }}</h4>
+                            <small class="text-muted">Low Stock</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h4 class="text-success">K{{ "%.2f"|format(total_value) }}</h4>
+                            <small class="text-muted">Inventory Value</small>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <a href="{{ url_for('inventory') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-cog me-1"></i>Manage Stock
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No Data State -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-chart-line fa-4x mb-4 text-muted"></i>
+                    <h3>No Sales Data Available</h3>
+                    <p class="text-muted">Start recording sales to see beautiful analytics and insights</p>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{{ url_for('sales') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Record First Sale
+                        </a>
+                        <a href="{{ url_for('catalog') }}" class="btn btn-success">
+                            <i class="fas fa-list me-2"></i>Add Products
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+// Analytics page specific JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    {% if analytics.total_sales > 0 %}
+    // Initialize charts with data
+    const analyticsData = {{ analytics|tojson }};
+    const inventoryData = {{ inventory_status|tojson }};
+    
+    // Initialize all charts
+    initializeAnalyticsCharts(analyticsData, {{ period }});
+    {% endif %}
+    
+    // Period selector event handlers
+    const periodButtons = document.querySelectorAll('input[name="period"]');
+    periodButtons.forEach(button => {
+        button.addEventListener('change', function() {
+            if (this.checked) {
+                window.location.href = `{{ url_for('analytics') }}?period=${this.value}`;
+            }
+        });
+    });
+});
+
+function generateCharts() {
+    // Animate chart generation
+    const cards = document.querySelectorAll('.card canvas');
+    cards.forEach((canvas, index) => {
+        setTimeout(() => {
+            canvas.style.animation = 'fadeIn 0.5s ease-in';
+            // Trigger chart redraw if needed
+            const chart = Chart.getChart(canvas);
+            if (chart) {
+                chart.update('active');
+            }
+        }, index * 100);
+    });
+    
+    // Show success message
+    const toast = document.createElement('div');
+    toast.className = 'toast position-fixed top-0 end-0 m-3';
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="toast-header">
+            <i class="fas fa-chart-bar text-success me-2"></i>
+            <strong class="me-auto">Analytics</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body">
+            Charts generated successfully!
+        </div>
+    `;
+    document.body.appendChild(toast);
+    
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    setTimeout(() => {
+        document.body.removeChild(toast);
+    }, 3000);
+}
+</script>
+{% endblock %}
+  
