@@ -50,20 +50,24 @@
                required>
         <div class="form-text">This will appear on your reports and throughout the system</div>
     </div>
-
     <!-- Business Type -->
-    <div class="mb-4">
-        <label for="business_type" class="form-label h5">
-            <i class="fas fa-tags me-2 text-primary"></i>Business Type
-        </label>
-        <input type="text" 
-               class="form-control form-control-lg" 
-               id="business_type" 
-               name="business_type" 
-               placeholder="e.g. Retail, Services"
-               required>
-        <div class="form-text">Specify the nature of your business.</div>
-    </div>
+<div class="mb-4">
+  <label for="business_type" class="form-label h5">
+    <i class="fas fa-tags me-2 text-primary"></i>Business Type
+  </label>
+  <select 
+    class="form-select form-select-lg" 
+    id="business_type" 
+    name="business_type" 
+    required>
+    <option value="" disabled selected>Select a type</option>
+    <option value="Retail">Retail</option>
+    <option value="Service">Service</option>
+    <option value="Manufacturing">Manufacturing</option>
+    <option value="Other">Other</option>
+  </select>
+  <div class="form-text">Choose the category that best describes your business</div>
+</div>
 
     <!-- Submit Button -->
     <div class="d-grid">
