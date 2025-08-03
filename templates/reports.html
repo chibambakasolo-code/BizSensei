@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Business Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-4">
+                <i class="fas fa-chart-bar me-3"></i>Sales Reports
+            </h1>
+            <p class="lead">Analyze your business performance</p>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-download me-2"></i>Export Reports
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <a href="/export/sales-csv" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-file-csv me-2"></i>Sales Data (CSV)
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="/export/inventory-csv" class="btn btn-outline-success w-100">
+                                <i class="fas fa-file-csv me-2"></i>Inventory Data (CSV)
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-danger dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-file-pdf me-2"></i>PDF Report
+                                </button>
+                                <ul class="dropdown-menu w-100">
+                                    <li><a class="dropdown-item" href="/export/report-pdf?period=7">Last 7 Days</a></li>
+                                    <li><a class="dropdown-item" href="/export/report-pdf?period=30">Last 30 Days</a></li>
+                                    <li><a class="dropdown-item" href="/export/report-pdf?period=90">Last 90 Days</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Tabs -->
+    <div class="row">
+        <div class="col">
+            <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="weekly-tab" data-bs-toggle="tab" data-bs-target="#weekly" type="button" role="tab">
+                        <i class="fas fa-calendar-week me-1"></i>Weekly (7 Days)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="monthly-tab" data-bs-toggle="tab" data-bs-target="#monthly" type="button" role="tab">
+                        <i class="fas fa-calendar-alt me-1"></i>Monthly (30 Days)
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="seasonal-tab" data-bs-toggle="tab" data-bs-target="#seasonal" type="button" role="tab">
+                        <i class="fas fa-calendar me-1"></i>Seasonal (90 Days)
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="reportTabsContent">
+                <!-- Weekly Report -->
+                <div class="tab-pane fade show active" id="weekly" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            {% set analytics = analytics_7d %}
+                            {% include 'reports_analytics_section.html' %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Monthly Report -->
+                <div class="tab-pane fade" id="monthly" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            {% set analytics = analytics_30d %}
+                            {% include 'reports_analytics_section.html' %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Seasonal Report -->
+                <div class="tab-pane fade" id="seasonal" role="tabpanel">
+                    <div class="card">
+                        <div class="card-body">
+                            {% set analytics = analytics_90d %}
+                            {% include 'reports_analytics_section.html' %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Section Template -->
+{% macro analytics_section(analytics) %}
+<div class="row mb-4">
+    <!-- Summary Cards -->
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Sales</h6>
+                        <h4 class="mb-0">{{ analytics.total_sales }}</h4>
+                    </div>
+                    <i class="fas fa-shopping-cart fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Revenue</h6>
+                        <h4 class="mb-0">K{{ "%.2f"|format(analytics.total_revenue) }}</h4>
+                    </div>
+                    <i class="fas fa-money-bill-wave fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Profit</h6>
+                        <h4 class="mb-0">K{{ "%.2f"|format(analytics.total_profit) }}</h4>
+                    </div>
+                    <i class="fas fa-chart-line fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-dark h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Avg Sale</h6>
+                        <h4 class="mb-0">K{{ "%.2f"|format(analytics.average_sale) }}</h4>
+                    </div>
+                    <i class="fas fa-calculator fa-2x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if analytics.top_items %}
+<!-- Top Selling Items -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-trophy me-2 text-warning"></i>Top Selling Items
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Item</th>
+                                <th>Qty Sold</th>
+                                <th>Revenue</th>
+                                <th>Profit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in analytics.top_items[:10] %}
+                            <tr>
+                                <td>
+                                    {% if loop.index <= 3 %}
+                                        <i class="fas fa-medal text-{{ 'warning' if loop.index == 1 else 'secondary' if loop.index == 2 else 'info' }}"></i>
+                                    {% endif %}
+                                    {{ loop.index }}
+                                </td>
+                                <td><strong>{{ item.item_name }}</strong></td>
+                                <td>{{ item.quantity }}</td>
+                                <td class="text-success">K{{ "%.2f"|format(item.revenue) }}</td>
+                                <td class="text-info">K{{ "%.2f"|format(item.profit) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-lightbulb me-2 text-success"></i>Recommendations
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if analytics.total_sales > 0 %}
+                    {% set top_item = analytics.top_items[0] %}
+                    {% set profit_margin = (analytics.total_profit / analytics.total_revenue * 100) if analytics.total_revenue > 0 else 0 %}
+                    
+                    <div class="mb-3">
+                        <h6 class="text-success">
+                            <i class="fas fa-thumbs-up me-1"></i>Keep Selling
+                        </h6>
+                        <p class="small mb-2">
+                            <strong>{{ top_item.item_name }}</strong> is your top performer with 
+                            K{{ "%.2f"|format(top_item.revenue) }} in revenue.
+                        </p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-info">
+                            <i class="fas fa-chart-line me-1"></i>Profit Margin
+                        </h6>
+                        <p class="small mb-2">
+                            Your average profit margin is {{ "%.1f"|format(profit_margin) }}%.
+                            {% if profit_margin < 20 %}
+                                Consider reviewing your pricing strategy.
+                            {% elif profit_margin > 40 %}
+                                Excellent profit margins!
+                            {% else %}
+                                Good profit margins.
+                            {% endif %}
+                        </p>
+                    </div>
+                    
+                    {% if analytics.total_sales < 10 %}
+                    <div class="mb-3">
+                        <h6 class="text-warning">
+                            <i class="fas fa-exclamation-triangle me-1"></i>Growth Opportunity
+                        </h6>
+                        <p class="small mb-2">
+                            Focus on increasing sales volume. Consider promotions or expanding your product range.
+                        </p>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center text-muted">
+                        <i class="fas fa-info-circle fa-2x mb-2"></i>
+                        <p class="small">Make some sales to see recommendations</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sales Trend -->
+{% if analytics.sales_by_day %}
+<div class="row mb-4">
+    <div class="col">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-area me-2"></i>Sales Trend ({{ analytics.period_days }} Days)
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Items Sold</th>
+                                <th>Revenue</th>
+                                <th>Performance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for day in analytics.sales_by_day[-7:] %}
+                            <tr>
+                                <td>{{ day.date }}</td>
+                                <td>{{ day.quantity }}</td>
+                                <td class="text-success">K{{ "%.2f"|format(day.revenue) }}</td>
+                                <td>
+                                    {% set avg_daily = analytics.total_revenue / analytics.period_days %}
+                                    {% if day.revenue > avg_daily * 1.2 %}
+                                        <span class="badge bg-success">Great</span>
+                                    {% elif day.revenue > avg_daily * 0.8 %}
+                                        <span class="badge bg-primary">Good</span>
+                                    {% elif day.revenue > 0 %}
+                                        <span class="badge bg-warning">Slow</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No Sales</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% else %}
+<div class="row">
+    <div class="col">
+        <div class="text-center py-5">
+            <i class="fas fa-chart-bar fa-4x mb-4 text-muted"></i>
+            <h3>No sales data available</h3>
+            <p class="text-muted">Start recording sales to generate reports</p>
+            <a href="{{ url_for('sales') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Record First Sale
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endmacro %}
+
+<!-- Inline template for analytics sections -->
+<script type="text/template" id="analytics-template">
+{{ analytics_section(analytics) }}
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Update analytics sections when tabs are switched
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButtons = document.querySelectorAll('#reportTabs button[data-bs-toggle="tab"]');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('shown.bs.tab', function(event) {
+            // Add any dynamic loading logic here if needed
+            console.log('Switched to tab:', event.target.getAttribute('data-bs-target'));
+        });
+    });
+});
+</script>
+{% endblock %}
+
+<!-- Template partial for analytics sections -->
+{% set template_name = 'reports_analytics_section.html' %}
+  
