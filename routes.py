@@ -48,29 +48,28 @@ def business_setup():
 
 @app.route('/setup', methods=['POST'])
 def setup_business():
-    """Handle business setup form submission"""
     try:
+        print("🚀 Form submitted")
+        print("Form data:", request.form.to_dict())
+
         business_name = request.form.get('business_name', '').strip()
         business_type = request.form.get('business_type', '').strip()
-        
-        if not business_name or not business_type:
-            flash('Please provide both business name and type', 'error')
-            return redirect(url_for('business_setup'))
-        
-        success = data_manager.setup_business(business_name, business_type)
-        
-        if success:
-            flash(f'Welcome to {business_name}! Your business is now set up.', 'success')
-            return redirect(url_for('index'))
-        else:
-            flash('Failed to setup business. Please try again.', 'error')
-            return redirect(url_for('business_setup'))
-            
-    except Exception as e:
-        print(f"Business setup error: {e}")
-        flash('An error occurred during setup. Please try again.', 'error')
-        return redirect(url_for('business_setup'))
 
+        print("Business Name:", business_name)
+        print("Business Type:", business_type)
+
+        if not business_name or not business_type:
+            print("❌ Missing a field")
+            return "Missing business_name or business_type", 400
+
+        # For now, skip data_manager to isolate error
+        return f"Received: {business_name} - {business_type}", 200
+
+    except Exception as e:
+        import traceback
+        print("💥 Error in setup_business:")
+        traceback.print_exc()
+        return f"Error: {e}", 500
 @app.route('/catalog')
 def catalog():
     """Item catalog page"""
