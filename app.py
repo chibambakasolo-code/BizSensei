@@ -25,7 +25,7 @@ def setup():
 
     # You can save this data here (e.g., to database)
     flash(f"Business '{business_name}' of type '{business_type}' added!", "success")
-    return redirect(url_for("index"))
+    return redirect(url_for("dashboard"))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
