@@ -6,6 +6,10 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
+    
 @app.route('/')
 def index():
     return render_template('setup.html')  # Main form page
