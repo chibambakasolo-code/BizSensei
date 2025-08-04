@@ -8,7 +8,9 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 @app.route('/dashboard')
 def dashboard():
-    return render_template('dashboard.html')
+    business_name = session.get('business_name', 'Unknown')
+    business_type = session.get('business_type', 'Unknown')
+    return render_template('dashboard.html', business_name=business_name, business_type=business_type
     
 @app.route('/')
 def index():
@@ -18,6 +20,13 @@ def index():
 def setup():
     business_name = request.form.get("business_name")
     business_type = request.form.get("business_type")
+
+    session['business_name'] = business_name
+    session['business_type'] = business_type
+
+    flash(f"Business '{business_name}' of type '{business_type}' added!", "success")
+    return redirect(url_for("dashboard")
+    
 
     if not business_name or not business_type:
         flash("Please fill in all fields.", "danger")
