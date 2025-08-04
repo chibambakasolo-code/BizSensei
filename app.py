@@ -8,15 +8,18 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 @app.route('/')
 def index():
-    return render_template('setup.html')  # Ensure this file exists in /templates
+    return render_template('setup.html')  # Main form page
 
 @app.route('/setup', methods=['POST'])
 def setup():
     business_name = request.form.get("business_name")
     business_type = request.form.get("business_type")
 
-    print(f"Received {business_name} - {business_type}")  # Debug log
+    if not business_name or not business_type:
+        flash("Please fill in all fields.", "danger")
+        return redirect(url_for("index"))
 
+    # You can save this data here (e.g., to database)
     flash(f"Business '{business_name}' of type '{business_type}' added!", "success")
     return redirect(url_for("index"))
 
