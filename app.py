@@ -8,7 +8,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 @app.route('/')
 def index():
-    return render_template('index.html')  # Ensure this file exists in /templates
+    return render_template('setup.html')  # Ensure this file exists in /templates
 
 @app.route('/setup', methods=['POST'])
 def setup():
