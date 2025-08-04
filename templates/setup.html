@@ -1,247 +1,63 @@
-⁸<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Setup - Business Manager</title>
-    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
+    <title>Business Setup</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+            background-color: #f0f0f0;
+        }
+        form {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin: auto;
+        }
+        label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 0.7rem;
+            margin-top: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            margin-top: 1.5rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row justify-content-center align-items-center min-vh-100">
-            <div class="col-md-8 col-lg-6">
-                <div class="setup-container">
-                    <!-- Header -->
-                    <div class="text-center mb-5">
-                        <div class="setup-icon">
-                            <i class="fas fa-store fa-4x text-primary mb-3"></i>
-                        </div>
-                        <h1 class="display-4 fw-bold mb-3">Welcome to Business Manager</h1>
-                        <p class="lead text-muted">Let's set up your business to get started with inventory and sales management</p>
-                    </div>
+    <h2 style="text-align:center;">Business Setup</h2>
+    <form method="POST" action="/setup">
+        <label for="business_name">Business Name:</label>
+        <input type="text" id="business_name" name="business_name" required>
 
-                    <!-- Flash Messages -->
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
-                                    <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'info-circle' }} me-2"></i>
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
+        <label for="business_type">Business Type:</label>
+        <select id="business_type" name="business_type" required>
+            <option value="">-- Select a type --</option>
+            <option value="Mini Supermarket">Mini Supermarket</option>
+            <option value="Clothing Store">Clothing Store</option>
+            <option value="Electronics Shop">Electronics Shop</option>
+            <option value="Salon/Barber">Salon/Barber</option>
+            <option value="Restaurant">Restaurant</option>
+            <option value="Other">Other</option>
+        </select>
 
-                    <!-- Setup Form -->
-                    <form method="POST" action="{{ url_for('setup_business') }}" id="businessSetupForm">
-    <!-- Business Name -->
-    <div class="mb-4">
-        <label for="business_name" class="form-label h5">
-            <i class="fas fa-building me-2 text-primary"></i>Business Name
-        </label>
-        <input type="text" 
-               class="form-control form-control-lg" 
-               id="business_name" 
-               name="business_name" 
-               placeholder="Enter your business name"
-               required>
-        <div class="form-text">This will appear on your reports and throughout the system</div>
-    </div>
-    <!-- Business Type -->
-<div class="mb-4">
-  <label for="business_type" class="form-label h5">
-    <i class="fas fa-tags me-2 text-primary"></i>Business Type
-  </label>
-  <select 
-    class="form-select form-select-lg" 
-    id="business_type" 
-    name="business_type" 
-    required>
-    <option value="" disabled selected>Select a type</option>
-    <option value="Retail">Retail</option>
-    <option value="Service">Service</option>
-    <option value="Manufacturing">Manufacturing</option>
-    <option value="Other">Other</option>
-  </select>
-  <div class="form-text">Choose the category that best describes your business</div>
-</div>
-
-    <!-- Submit Button -->
-    <div class="d-grid">
-        <button type="submit" class="btn btn-primary btn-lg">
-            <i class="fas fa-check-circle me-2"></i>Set Up Business
-        </button>
-    </div>
-                    </form>
-                                
-                                    
-                                    <!-- Search Box -->
-                                    <div class="mb-3">
-                                        <input type="text" 
-                                               class="form-control form-control-lg" 
-                                               id="businessSearch" 
-                                               placeholder="Search business types..."
-                                               autocomplete="off">
-                                    </div>
-                                    
-                                    <!-- Business Types Container -->
-                                    <div class="business-types-container" style="max-height: 400px; overflow-y: auto;">
-                                        <div class="business-types" id="businessTypesList">
-                                            {% for business_type in business_types %}
-                                                <div class="business-type-card" 
-                                                     data-type="{{ business_type.id }}"
-                                                     data-name="{{ business_type.name.lower() }}"
-                                                     data-description="{{ business_type.description.lower() }}">
-                                                    <input type="radio" 
-                                                           class="btn-check" 
-                                                           name="business_type" 
-                                                           id="type_{{ business_type.id }}" 
-                                                           value="{{ business_type.id }}"
-                                                           required>
-                                                    <label class="btn btn-outline-primary btn-lg w-100 text-start p-3" 
-                                                           for="type_{{ business_type.id }}">
-                                                           {{ business_type.name }}
-                                                        <div class="d-flex justify-content-between align-items-center">
-                                                            <div>
-                                                                <div class="fw-bold mb-1">{{ business_type.name }}</div>
-                                                                <small class="text-muted">{{ business_type.description }}</small>
-                                                            </div>
-                                                            <i class="fas fa-check-circle d-none"></i>
-                                                        </div>
-                                                    </label>
-                                                </div>
-                                            {% endfor %}
-                                        </div>
-                                        
-                                        <!-- No Results Message -->
-                                        <div id="noResults" class="text-center py-4 d-none">
-                                            <i class="fas fa-search fa-2x text-muted mb-2"></i>
-                                            <p class="text-muted">No business types found matching your search.</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Submit Button -->
-                                <div class="text-center">
-                                    <button type="submit" class="btn btn-primary btn-lg px-5 py-3">
-                                        <i class="fas fa-rocket me-2"></i>Setup My Business
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    <!-- Features Preview -->
-                    <div class="mt-5 text-center">
-                        <h4 class="mb-4">What you'll get:</h4>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <div class="feature-item">
-                                    <i class="fas fa-inventory fa-2x text-primary mb-2"></i>
-                                    <div class="fw-bold">Smart Inventory</div>
-                                    <small class="text-muted">Track stock with automatic categories</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="feature-item">
-                                    <i class="fas fa-chart-line fa-2x text-primary mb-2"></i>
-                                    <div class="fw-bold">Sales Analytics</div>
-                                    <small class="text-muted">Understand your business performance</small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="feature-item">
-                                    <i class="fas fa-mobile-alt fa-2x text-primary mb-2"></i>
-                                    <div class="fw-bold">Mobile Ready</div>
-                                    <small class="text-muted">Manage on-the-go from any device</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Business type search functionality
-            const searchInput = document.getElementById('businessSearch');
-            const businessCards = document.querySelectorAll('.business-type-card');
-            const noResults = document.getElementById('noResults');
-            
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase().trim();
-                let visibleCards = 0;
-                
-                businessCards.forEach(card => {
-                    const name = card.dataset.name;
-                    const description = card.dataset.description;
-                    
-                    if (searchTerm === '' || name.includes(searchTerm) || description.includes(searchTerm)) {
-                        card.style.display = 'block';
-                        visibleCards++;
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-                
-                // Show/hide no results message
-                if (visibleCards === 0 && searchTerm !== '') {
-                    noResults.classList.remove('d-none');
-                } else {
-                    noResults.classList.add('d-none');
-                }
-            });
-            
-            // Enhanced radio button styling
-            const radioInputs = document.querySelectorAll('input[name="business_type"]');
-            
-            radioInputs.forEach(input => {
-                input.addEventListener('change', function() {
-                    // Remove check icons from all cards
-                    document.querySelectorAll('.fa-check-circle').forEach(icon => {
-                        icon.classList.add('d-none');
-                    });
-                    
-                    // Show check icon for selected card
-                    if (this.checked) {
-                        const checkIcon = this.parentElement.querySelector('.fa-check-circle');
-                        if (checkIcon) {
-                            checkIcon.classList.remove('d-none');
-                        }
-                    }
-                });
-            });
-
-            // Form validation feedback
-            const form = document.getElementById('businessSetupForm');
-            form.addEventListener('submit', function(e) {
-                const businessName = document.getElementById('business_name');
-                const businessType = document.querySelector('input[name="business_type"]:checked');
-                
-                if (!businessName.value.trim()) {
-                    businessName.focus();
-                    e.preventDefault();
-                    return;
-                }
-                
-                if (!businessType) {
-                    alert('Please select a business type');
-                    e.preventDefault();
-                    return;
-                }
-                
-                // Show loading state
-                const submitBtn = form.querySelector('button[type="submit"]');
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Setting up...';
-                submitBtn.disabled = true;
-            });
-        });
-    </script>
+        <button type="submit">Continue</button>
+    </form>
 </body>
-  </html>
+</html>
